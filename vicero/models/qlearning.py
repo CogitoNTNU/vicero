@@ -1,24 +1,23 @@
 # Inspired by https://medium.com/@tuzzer/cart-pole-balancing-with-q-learning-b54c6068d947
 
-import gym
 import numpy as np
 import math
 from collections import deque
 
 class QCartPoleSolver():
-    def __init__(self, buckets=(1, 1, 6, 12,), n_episodes=10000, n_win_ticks=200, min_alpha=0.1, min_epsilon=0.1, gamma=1.0, ada_divisor=25, max_env_steps=None, quiet=False, monitor=False):
+    def __init__(self, buckets=(1, 1, 6, 12,), n_episodes=10000, n_win_ticks=200, min_alpha=0.1, min_epsilon=0.1, gamma=1.0, ada_divisor=25, max_env_steps=None, quiet=False, monitor=False, env=None):
         self.buckets = buckets # down-scaling feature space to discrete range
         self.n_episodes = n_episodes # training episodes 
         self.n_win_ticks = n_win_ticks # average ticks over 100 episodes required for win
         self.min_alpha = min_alpha # learning rate
         self.min_epsilon = min_epsilon # exploration rate
         self.gamma = gamma # discount factor
+        
         self.ada_divisor = ada_divisor # only for development purposes
         self.quiet = quiet
+        self.env = env
 
-        self.env = gym.make('CartPole-v0')
         if max_env_steps is not None: self.env._max_episode_steps = max_env_steps
-        if monitor: self.env = gym.wrappers.Monitor(self.env, 'tmp/cartpole-1', force=True) # record results for upload
 
         self.Q = np.zeros(self.buckets + (self.env.action_space.n,))
 
@@ -74,8 +73,3 @@ class QCartPoleSolver():
 
         if not self.quiet: print('Did not solve after {} episodes 😞'.format(e))
         return e
-
-if __name__ == "__main__":
-    solver = QCartPoleSolver()
-    solver.run()
-# gym.upload('tmp/cartpole-1', api_key='')

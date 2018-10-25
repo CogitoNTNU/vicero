@@ -1,5 +1,6 @@
-import src.models.qlearning as ql
+import gym
+import vicero.models.qlearning as ql
 
-if __name__ == "__main__":
-    solver = ql.QCartPoleSolver()
-    solver.run()
+env = gym.make('CartPole-v0')
+solver = ql.QCartPoleSolver(env=env)
+solver.run()

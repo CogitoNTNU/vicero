@@ -1,33 +1,8 @@
 from Qlearner import Qlearner
 import numpy as np
 import math
-from collections import deque
-
+from basicmaze import BasicMaze
 import tensorflow as tf
-
-
-def run(self):
-    scores = deque(maxlen=100)
-
-    for e in range(self.n_episodes):
-        current_state = self.discretize(self.env.reset())
-
-        alpha = self.get_alpha(e)
-        epsilon = self.get_epsilon(e)
-        done = False
-        i = 0
-
-        scores.append(i)
-        mean_score = np.mean(scores)
-
-        if mean_score >= self.n_win_ticks and e >= 100:
-            if not self.quiet: print('Ran {} episodes. Solved after {} trials ✔'.format(e, e - 100))
-            return e - 100
-        if e % 100 == 0 and not self.quiet:
-            print('[Episode {}] - Mean survival time over last 100 episodes was {} ticks.'.format(e, mean_score))
-
-    if not self.quiet: print('Did not solve after {} episodes 😞'.format(e))
-    return e
 
 def discretize(self, obs):
     upper_bounds = [self.env.observation_space.high[0], 0.5, self.env.observation_space.high[2], math.radians(50)]
@@ -40,22 +15,21 @@ def discretize(self, obs):
 
 if __name__ == '__main__':
     num_actions = 4
-    num_states = 21
+    width = 5
+    height = 5
+    blocks = 3
+    goals = 1
+
+    num_states = width * height - blocks - goals
+
     gamma = 1
     alpha_init = 0.1
     epsilon_init = 0.1
+    params = {'epsilon': epsilon_init, 'alpha': alpha_init, 'gamma': gamma}
 
-    env = BoxEnv((5, 5), 1, 3)  # (5, 5) er size, 1 er # goals, 3 er #blocks
+    env = BasicMaze((height, width), blocks,  goals)
 
-    method = Qlearner(num_actions, num_states, gamma, alpha_init, epsilon_init)
+    learner = Qlearner(params, num_actions, num_states, env)
+    training_iter = 5000
+    learner.explore(training_iter, discretize)
 
-    while not done:
-        # self.env.render()
-        action = self.choose_action(current_state, epsilon)
-        obs, reward, done, _ = self.env.step(action)
-        new_state = self.discretize(obs)
-        self.update_q(current_state, action, reward, new_state, alpha)
-        current_state = new_state
-        i += 1
-        if e > 160:
-            self.env.render()

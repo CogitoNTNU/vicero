@@ -40,8 +40,8 @@ class Qlearner:
         # num_iter gives the number of times the method will try to solve the environment
 
         for i in range(num_iter):
-            # alpha er learning rate og benyttes til å oppdatere tabellen Q
-            # større epsilon betyr flere tilfeldige handlinger i exploration step (0 < epsilon <=1)
+            # alpha is the learning rate and is used to update the values in Q
+            # A larger epsilon means more random actions in the exploration step (0 < epsilon <= 1)
 
             previous_state = discretize_fct(self.env.reset())
             alpha = self.get_alpha()

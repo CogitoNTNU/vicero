@@ -10,21 +10,21 @@ class Qlearner:
 
         self.alpha = params.get('alpha', 0.1)  # learning rate
         self.epsilon = params.get('epsilon', 0.1)  # exploration rate
-        self.gamma = params.get('gamma', 1)  # discount factor
+        self.gamma = params.get('gamma', 0.8)  # discount factor
 
         self.num_actions = num_actions
         self.num_states = num_states
-        self.env = env
+        #self.env = env
         self.Q = np.zeros((self.num_states, self.num_actions))
 
-    def update_q(self, state_old, action, reward, state_new, alpha):
-        self.Q[state_old][action] += alpha * (
+    def update_q(self, state_old, action, reward, state_new):
+        self.Q[state_old][action] += self.alpha * (
                     reward + self.gamma * np.max(self.Q[state_new]) - self.Q[state_old][action])
 
     def exploratory_action(self, state, epsilon=None):
         if epsilon is None:
             epsilon = self.epsilon
-        return self.env.action_space.sample() if (np.random.random() <= epsilon) else np.argmax(
+        return np.random.randint(self.num_actions) if (np.random.random() <= epsilon) else np.argmax(
                 self.Q[state])
 
     def winning_action(self, state):

@@ -32,4 +32,5 @@ if __name__ == '__main__':
     learner = Qlearner(params, num_actions, num_states, env)
     training_iter = 5000
     learner.explore(training_iter, discretize)
+    
 

@@ -7,6 +7,9 @@ class MazeEnv:
     DOWN = 2
     LEFT = 3
 
+    wall_penalty = -2
+    time_penalty = 0
+
     def __init__(self, board):
         self.init_board = np.array(board)
         self.board = np.array(board)
@@ -30,26 +33,25 @@ class MazeEnv:
                     self.pos = self.init_pos
 
     def step(self, action):
-        reward = -1
         x, y = self.pos
         
         if action == self.UP and y == 0:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
         elif action == self.RIGHT and x == self.size - 1:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
         elif action == self.DOWN and y == self.size - 1:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
         elif action == self.LEFT and x == 0:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
 
         if action == self.UP and self.board[y - 1][x] == -1:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
         if action == self.RIGHT and self.board[y][x + 1] == -1:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
         if action == self.DOWN and self.board[y + 1][x] == -1:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
         if action == self.LEFT and self.board[y][x - 1] == -1:
-            return self.board, -10, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
 
         self.board[y][x] = 0
 
@@ -63,7 +65,7 @@ class MazeEnv:
 
         self.board[y][x] = 1
         self.pos = (x, y)
-        return self.board, reward, False, {'x': x, 'y': y}
+        return self.board, self.time_penalty, False, {'x': x, 'y': y}
 
     def reset(self):
         self.board = self.init_board

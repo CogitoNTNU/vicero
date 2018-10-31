@@ -9,8 +9,8 @@ class Qlearner:
         # Possible further improvements are implementing other optimization rules (Adam, Adagrad,..)
 
         self.alpha = params.get('alpha', 0.1)  # learning rate
-        self.epsilon = params.get('epsilon', 0.1)  # exploration rate
-        self.gamma = params.get('gamma', 0.8)  # discount factor
+        self.epsilon = params.get('epsilon', 0.2)  # exploration rate
+        self.gamma = params.get('gamma', 0.9)  # discount factor
 
         self.num_actions = num_actions
         self.num_states = num_states
@@ -20,7 +20,7 @@ class Qlearner:
     def update_q(self, state_old, action, reward, state_new):
         self.Q[state_old][action] += self.alpha * (
                     reward + self.gamma * np.max(self.Q[state_new]) - self.Q[state_old][action])
-
+        
     def exploratory_action(self, state, epsilon=None):
         if epsilon is None:
             epsilon = self.epsilon

@@ -1,5 +1,5 @@
 import pygame as pg
-import examples.mazeenv as maze
+import environments.maze as maze
 import vicero.models.qlearning as ql
 import numpy as np
 
@@ -24,7 +24,6 @@ framerate  = 60 # frames per second
 pg.init()
 screen = pg.display.set_mode((cell_size * (len(board[0]) + pad_cells) * n_game_ins, cell_size * len(board)))
 clock = pg.time.Clock()
-
 
 class GameInstance:
     def __init__(self, env, model, offset):
@@ -73,8 +72,8 @@ class GameInstance:
                 if self.board[j][i] == 10:
                     pg.draw.rect(screen, (180, 180, 64), pg.Rect(self.offset[0] + cell_size * i, self.offset[1] + cell_size * j, cell_size, cell_size))
 
-games = [GameInstance(maze.MazeEnv(board),
-                      ql.Qlearning(64, 4, epsilon=(0.05 * i)),
+games = [GameInstance(maze.MazeEnvironment(board),
+                      ql.Qlearning(len(board) ** 2, len(maze.MazeEnvironment.action_space), epsilon=(0.05 * i)),
                       (i * cell_size * (len(board[0]) + pad_cells), 0)) for i in range(n_game_ins)]
 
 while True:    

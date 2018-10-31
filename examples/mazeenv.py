@@ -36,22 +36,22 @@ class MazeEnv:
         x, y = self.pos
         
         if action == self.UP and y == 0:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
         elif action == self.RIGHT and x == self.size - 1:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
         elif action == self.DOWN and y == self.size - 1:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
         elif action == self.LEFT and x == 0:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
 
         if action == self.UP and self.board[y - 1][x] == -1:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
         if action == self.RIGHT and self.board[y][x + 1] == -1:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
         if action == self.DOWN and self.board[y + 1][x] == -1:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
         if action == self.LEFT and self.board[y][x - 1] == -1:
-            return self.board, self.wall_penalty, False, {'x': x, 'y': y}
+            return self.board, self.wall_penalty, False, { 'pos': self.pos }
 
         self.board[y][x] = 0
 
@@ -61,11 +61,11 @@ class MazeEnv:
         if action == self.LEFT: x -= 1
 
         if self.board[y][x] == 10:
-            return self.board, 10, True, {'x': x, 'y': y}
+            return self.board, 10, True, { 'pos': self.pos }
 
         self.board[y][x] = 1
         self.pos = (x, y)
-        return self.board, self.time_penalty, False, {'x': x, 'y': y}
+        return self.board, self.time_penalty, False, { 'pos': self.pos }
 
     def reset(self):
         self.board = self.init_board

@@ -8,7 +8,7 @@ class MazeEnv:
     LEFT = 3
 
     wall_penalty = -2
-    time_penalty = 0
+    time_penalty = -1
 
     def __init__(self, board):
         self.init_board = np.array(board)

@@ -13,7 +13,7 @@ class NimSim:
         self.state = ((player + 1) % self.NP, pieces - amount)
         return self.state, (self.state[1] <= 0)
 
-    def simulate(self, amount, state):
+    def simulate(self, state, amount):
         player, pieces = state
         state = ((player + 1) % self.NP, pieces - amount)
         return state, (state[1] <= 0)

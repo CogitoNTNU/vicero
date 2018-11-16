@@ -51,7 +51,7 @@ env = maze.MazeEnvironment(board)
 def discretize(state):
     return state[1] * env.size + state[0]
 
-ql = Qlearning(env, len(board) ** 2, len(maze.MazeEnvironment.action_space), epsilon=(0.15), discretize=discretize)
+ql = Qlearning(env, len(board) ** 2, len(maze.MazeEnvironment.action_space), epsilon=0.15, discretize=discretize)
 
 ql.train(10)
 shitty_policy = ql.copy_target_policy()

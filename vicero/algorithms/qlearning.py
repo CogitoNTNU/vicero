@@ -30,7 +30,7 @@ class Qlearning:
         for _ in range(iterations):
             if np.random.random() <= self.shakeup:
                 self.env.randomize()
-            
+                
             state_old = self.env.state
             action = self.exploratory_action(self.env.state)
             state, reward, done, board = self.env.step(action)

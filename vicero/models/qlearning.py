@@ -20,3 +20,6 @@ class Qlearning:
 
     def winning_action(self, state):
         return np.argmax(self.Q[state])
+
+    def get_epsilon(self):
+        return self.epsilon

@@ -15,34 +15,34 @@ class MazeEnvironment:
             for j in range(self.size):
                 if (board[i][j] == 1):
                     self.init_pos = (j, i)
-                    self.pos = self.init_pos
+                    self.state = self.init_pos
 
         # reward specification
         self.wall_penalty = wall_penalty
         self.time_penalty = time_penalty
 
     def step(self, action):
-        x, y = self.pos
+        x, y = self.state
         
         # check for out-of-bound collisions
         if action == self.UP and y == 0:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
         elif action == self.RIGHT and x == self.size - 1:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
         elif action == self.DOWN and y == self.size - 1:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
         elif action == self.LEFT and x == 0:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
 
         # check for wall block collisions
         if action == self.UP and self.board[y - 1][x] == -1:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
         if action == self.RIGHT and self.board[y][x + 1] == -1:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
         if action == self.DOWN and self.board[y + 1][x] == -1:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
         if action == self.LEFT and self.board[y][x - 1] == -1:
-            return self.board, self.wall_penalty, False, self.pos
+            return self.state, self.wall_penalty, False, self.board
 
         # clear the current position
         self.board[y][x] = 0
@@ -55,20 +55,32 @@ class MazeEnvironment:
         
         # check for goal state
         if self.board[y][x] == 10:
-            return self.board, 10, True, self.pos
+            return self.state, 10, True, self.board
 
         # place the player marker
         self.board[y][x] = 1
-        self.pos = (x, y)
+        self.state = (x, y)
 
-        return self.board, self.time_penalty, False, self.pos
+        return self.state, self.time_penalty, False, self.board
 
     def reset(self):
-        self.board = self.init_board
-        self.pos = self.init_pos
+        self.board = np.array(self.init_board)
+        self.state = self.init_pos
+        x, y = self.state
+        self.board[y][x] = 1
+
+    def randomize(self):
+        self.board = np.array(self.init_board)
+        x, y = (0, 0)
+        free = False
+        while not free:
+            x, y = (np.random.randint(0, self.size), np.random.randint(0, self.size))
+            if self.board[y][x] == 0:
+                free = True
+        self.board[y][x] = 1
 
     def get_board(self):
         return self.board
 
     def get_pos(self):
-        return self.pos
+        return self.state

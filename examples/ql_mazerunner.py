@@ -102,7 +102,6 @@ def plot_durations(steps):
 
     plt.pause(0.001) # To update plots
 
-
 while True:
     i = 0
     step_list, finished = game.game_step()

@@ -1,4 +1,4 @@
-import vicero.models.mcts as mcts
+import vicero.algortithms.mcts as mcts
 import environments.mnkgame as mnkgame
 import numpy as np
 

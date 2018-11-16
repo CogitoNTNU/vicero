@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import gym
-from vicero.vicero.models.deepqlearning import DQNAgent
+from vicero.algortithms.deepqlearning import DQNAgent
 
 class Model(nn.Module):
     # Simple net with one hidden layer

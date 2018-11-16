@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import gym
-from vicero.algortithms.deepqlearning import DQNAgent
+from vicero.algorithms.deepqlearning import DQNAgent
 
 class Model(nn.Module):
     # Simple net with one hidden layer
@@ -20,8 +20,6 @@ class Model(nn.Module):
         out = self.relu2(out)
         out = self.fc3(out)
         return out
-
-
 
 if __name__ == '__main__':
     torch.set_default_tensor_type('torch.DoubleTensor')

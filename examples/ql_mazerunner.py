@@ -1,6 +1,6 @@
 import pygame as pg
 import environments.maze as maze
-import vicero.algortithms.qlearning as ql
+import vicero.algorithms.qlearning as ql
 import numpy as np
 import matplotlib.pyplot as plt
 

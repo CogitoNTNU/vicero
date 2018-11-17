@@ -6,33 +6,41 @@ class MNKGame:
         self.M = M # rows
         self.N = N # columns
         self.K = K
-        self.state = (starting_piece, np.zeros((M, N))) # [row][column] / [y][x]
+        self.state = (starting_piece, np.zeros((M, N)), 0) # [row][column] / [y][x]
         self.action_space = range(M * N)
         
     def is_legal_action(self, state, action):
         return state[1][action // self.N][action % self.N] == 0
 
     def step(self, action):
-        done = self.is_winning_move(self.state, action)
-        player, board = self.state
+        done, tie = self.is_finishing_move(self.state, action)
+        player, board, turn = self.state
         board[action // self.N][action % self.N] = player
-        self.state = (player * -1, board)
+        self.state = (player * -1 if not tie else 0, board, turn + 1)
         return self.state, done
     
     def simulate(self, state, action):
-        done = self.is_winning_move(state, action)
-        player, board = state
+        done, tie = self.is_finishing_move(state, action)
+        player, board, turn = state
         board_cpy = np.array(board)
         board_cpy[action // self.N][action % self.N] = player
-        state = (player * -1, board_cpy)
+        state = (player * -1 if not tie else 0, board_cpy, turn + 1)
         return state, done
 
     # run this before flipping the player piece
+    def is_finishing_move(self, state, action):
+        if self.is_winning_move(state, action):
+            return True, False
+        if state[2] == self.M * self.N - 1: # tie
+            #state = (0, state[1], state[2])
+            return True, True
+        return False, False
+
     def is_winning_move(self, state, action):
-        player, board = state
+        player, board, turn = state
         y, x = action // self.N, action % self.N
         x_range, y_range = range(0, self.N), range(0, self.M)
-        
+         
         idf = lambda x, y : x # identity function
         
         ops = [[op.sub, idf],    # horizontal
@@ -61,12 +69,12 @@ class MNKGame:
                 length = 1
         
         return False
-        
+
     def reset(self, starting_piece):
-        self.state = (starting_piece, np.zeros((self.M, self.N)))
+        self.state = (starting_piece, np.zeros((self.M, self.N)), 0)
 
     def get_winner(self, state):
-        return state[0]
+        return state[0] * -1
 
 """
 ttt = MNKGame(4, 3, 3)

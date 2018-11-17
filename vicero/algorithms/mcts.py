@@ -20,18 +20,17 @@ class MCTS:
             return qsa + (usa if not opponent else -usa)
 
         quality = property(fget=lambda self : self.wins / (1 + self.visits))
-
-    doomsday_bit = False
     
-    def __init__(self, env, M, player_id):
+    def __init__(self, env, M):
         self.env = env
         self.root = self.Node(None, None, (env.state, False))
         self.M = M
-        self.player_id = player_id # to allow self-play, instead of hard-coding player 1
+        self.player_id = 0#player_id # to allow self-play, instead of hard-coding player 1
 
     def pick_action(self, state, viz=False): # M full simulation runs
         self.root = self.Node(None, None, (state, False))
-        
+        self.player_id = state[0]
+
         for _ in range(self.M):
             self.tree_search(self.root)
         
@@ -69,7 +68,7 @@ class MCTS:
         state = node.state
         while not done:
             state, done = self.env.simulate(state, self.default_policy())
-        win = ((self.env.get_winner(state) == self.player_id) != self.doomsday_bit) # win (2-player)
+        win = (self.env.get_winner(state) == self.player_id)
         self.backpropagation(node, win)
 
     def backpropagation(self, node, win):

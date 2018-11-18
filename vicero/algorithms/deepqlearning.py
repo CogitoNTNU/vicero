@@ -1,26 +1,63 @@
 import numpy as np
 import torch
+import torch.nn as nn
 import random
 from collections import deque
 
+
+class Model(nn.Module):
+    # Simple net with one hidden layer
+    def __init__(self, input_size, first_layer, second_layer, num_classes):
+        super(Model, self).__init__()
+        self.fc1 = nn.Linear(input_size, first_layer)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(first_layer, second_layer)
+        self.relu2 = nn.ReLU()
+        self.fc3 = nn.Linear(second_layer, num_classes)
+
+    def forward(self, x):
+        out = self.fc1(x)
+        out = self.relu1(out)
+        out = self.fc2(out)
+        out = self.relu2(out)
+        out = self.fc3(out)
+        return out
+        
 class DQNAgent:
-    def __init__(self, model, env, n_states, n_actions, device, optimizer = None, loss_fct = None,
-                 lr=.001, epsilon=1.0, gamma=.95, eps_min=.01, eps_decay=.99, memory_length=2000, state_to_reward=None):
-        self.learning_rate = lr
+    def __init__(self, env, alpha=.001, epsilon=1.0, gamma=.95, eps_min=.01, eps_decay=.99, memory_length=2000, state_to_reward=None, render=True):
+
+        # learning rate
+        self.alpha = alpha
+
+        # discount factor
+        self.gamma = gamma
+
+        # exploration rate
         self.epsilon = epsilon
         self.epsilon_min = eps_min
         self.epsilon_decay = eps_decay
-        self.memory = deque(maxlen=memory_length)
-        self.model = model.to(device)
+        
         self.env = env
-        self.device = device
-        self.optimizer = optimizer(self.model.parameters(), lr=self.learning_rate)
-        self.criterion = loss_fct()
         self.state_to_reward = state_to_reward
-
-        self.gamma = gamma
-        self.n_states = n_states
-        self.n_actions = n_actions
+        
+        # the following 7 lines should be elegantly generalized
+        torch.set_default_tensor_type('torch.DoubleTensor')
+        device = torch.device('cpu')
+        feature_size, action_size = env.observation_space.shape[0], env.action_space.n
+        first_layer = 24
+        second_layer = 24
+        optimizer = torch.optim.Adam
+        loss_fct = nn.MSELoss
+        
+        self.model = Model(feature_size, first_layer, second_layer, action_size)    
+        self.memory = deque(maxlen=memory_length)
+        self.model = self.model.to(device)
+        self.device = device
+        self.optimizer = optimizer(self.model.parameters(), lr=self.alpha)
+        self.criterion = loss_fct()
+        
+        self.render = render
+        self.n_actions = action_size
 
     def train(self, num_episodes, batch_size, training_iter=500, completion_reward=0, verbose=False,
               plot=False, eps_decay=True):
@@ -32,7 +69,7 @@ class DQNAgent:
             state = torch.from_numpy(np.flip(state,axis=0).copy())
             state = state.to(self.device)
             for time in range(training_iter):
-                if plot:
+                if self.render:
                     self.env.render()
 
                 action = self.exploratory_action(state)
@@ -80,24 +117,18 @@ class DQNAgent:
         if (self.epsilon > self.epsilon_min) and eps_decay:
             self.epsilon *= self.epsilon_decay
 
-
     def exploratory_action(self, state):
         if np.random.rand() <= self.epsilon:
-            return random.randrange(self.n_actions)
+            return np.random.choice(range(self.n_actions))
         outputs = self.model(state)
         return outputs.max(0)[1].numpy()
-
 
     def winning_action(self, state):
         outputs = self.model(state)
         return outputs.max(0)[1].numpy()
-
-    def get_epsilon(self):
-        return self.epsilon
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
     def save(self, name):
         torch.save(self.model.state_dict(), name)
-

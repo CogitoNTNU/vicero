@@ -54,20 +54,20 @@ class MCTS:
             self.node_expansion(node)
 
     def node_expansion(self, node):
-        node.children = [self.Node(node, action, self.env.simulate(node.state, action)) for action in self.env.action_space if self.env.is_legal_action(node.state, action)]
+        if not node.done:
+            node.children = [self.Node(node, action, self.env.simulate(node.state, action)) for action in self.env.action_space if self.env.is_legal_action(node.state, action)]
         self.leaf_evaluation(node)
 
         #for child in node.children:
         #    self.leaf_evaluation(child)
 
     def default_policy(self, state=None):
-        return np.random.choice(self.env.action_space)
+        return np.random.choice([action for action in self.env.action_space if self.env.is_legal_action(state, action)])
 
     def leaf_evaluation(self, node):
-        done = False
-        state = node.state
+        state, done = node.state, node.done
         while not done:
-            state, done = self.env.simulate(state, self.default_policy())
+            state, done = self.env.simulate(state, self.default_policy(state))
         win = (self.env.get_winner(state) == self.player_id)
         self.backpropagation(node, win)
 

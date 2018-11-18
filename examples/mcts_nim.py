@@ -12,13 +12,13 @@ class GameAgent:
             return self.model.pick_action(state, viz)
         return np.random.choice(self.env.action_space)
 
-N, K, M = 15, 3, 100
+N, K, M = 4, 2, 1000
 player_id, evil_id = 0, 1
 starting_player = player_id
 ns = nimsim.NimSim(N, K, starting_player=starting_player)
 
-player_agent = GameAgent(ns, model=mcts.MCTS(ns, M, player_id))
-evil_agent = GameAgent(ns, model=mcts.MCTS(ns, M // 10, evil_id))
+player_agent = GameAgent(ns, model=mcts.MCTS(ns, M))
+evil_agent = GameAgent(ns, model=mcts.MCTS(ns, M))
 
 n_games = 10
 wins = 0
@@ -29,13 +29,14 @@ for i in range(n_games): # for each game
     done = False
     state = ns.state
     
+    i = 0
     while not done: # for each turn
         
         if state[0] == player_id: # shitty loop, but readable
-            action = player_agent.pick_action(ns.state)#, viz=(state[1]==N))
+            action = player_agent.pick_action(ns.state, viz=(i == 0))
         else: # opponent move
             action = evil_agent.pick_action(ns.state)
-        
+        i += 1
         state, done = ns.step(action)
         
     if state[0] != player_id:

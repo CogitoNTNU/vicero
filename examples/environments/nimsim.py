@@ -11,12 +11,12 @@ class NimSim:
     def step(self, amount):
         player, pieces = self.state
         self.state = ((player + 1) % self.NP, pieces - amount)
-        return self.state, (self.state[1] <= 0)
+        return self.state, (self.state[1] == 0)
 
     def simulate(self, state, amount):
         player, pieces = state
         state = ((player + 1) % self.NP, pieces - amount)
-        return state, (state[1] <= 0)
+        return state, (state[1] == 0)
 
     def reset(self, starting_player):
         self.state = (starting_player, self.N)
@@ -27,4 +27,4 @@ class NimSim:
             return True
 
     def get_winner(self, state):
-        return state[0]
+        return (state[0] + 1) % self.NP

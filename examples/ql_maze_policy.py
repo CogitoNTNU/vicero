@@ -14,8 +14,8 @@ board = [[0 ,0 ,0 ,0 ,10,0 ,0 ,0 ],
          [0 ,0 ,0 ,-1,-1,0 ,0 ,0 ],
          [0 ,0 ,0 ,1 ,0 ,0 ,0 ,0 ]]
 
-cell_size  = 64 # the size of one game cell, in pixels
-framerate  = 4 # frames per second
+cell_size  = 48 # the size of one game cell, in pixels
+framerate  = 10 # frames per second
 
 # pygame setup
 pg.init()
@@ -48,31 +48,27 @@ class GameInstance:
 
 env = maze.MazeEnvironment(board)
 
-def discretize(state):
-    return state[1] * env.size + state[0]
+ql = Qlearning(env, len(board) ** 2, len(maze.MazeEnvironment.action_space), epsilon=0.15, discretize=lambda state : state[1] * env.size + state[0])
 
-ql = Qlearning(env, len(board) ** 2, len(maze.MazeEnvironment.action_space), epsilon=0.15, discretize=discretize)
-
-ql.train(10)
-shitty_policy = ql.copy_target_policy()
 ql.train(100)
 better_policy = ql.copy_target_policy()
-ql.train(1000)
+
+ql.train(3000)
 decent_policy = ql.copy_target_policy()
+
 ql.train(10000)
 pro_policy = ql.copy_target_policy()
 
-game = GameInstance(env, shitty_policy)
+game = GameInstance(env, better_policy)
 
-policies = [('the worst policy', shitty_policy),
-            ('the bad policy', better_policy),
-            ('the ok policy', decent_policy),
+policies = [('the bad policy', better_policy),
+            ('the not good enough policy', decent_policy),
             ('the good policy', pro_policy)]
 
-i = 0
 while True:
     for policy in policies:
         print('switching to {}'.format(policy[0]))
+        
         game.policy = policy[1]
         for _ in range(30):
             game.game_step()

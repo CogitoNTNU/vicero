@@ -5,7 +5,7 @@ import pygame as pg
 
 
 M, N, K = 3, 3, 3
-cell_size, framerate = 32, 1
+cell_size, framerate = 32, 1000
 pg.init()
 screen = pg.display.set_mode((cell_size * M, cell_size * N))
 clock = pg.time.Clock()
@@ -65,7 +65,7 @@ carlo =     GameAgent(env, 'Carlo Supreme', algorithm=mcts.MCTS(env, 100))
 montezuma = GameAgent(env, 'Montezuma', algorithm=mcts.MCTS(env, 25))
 gambler =   GameAgent(env, 'Gambler Gabe')
 
-n_games = 10
+n_games = 100
 
 matchups = [(carlo, carlo), 
             (carlo, montezuma),

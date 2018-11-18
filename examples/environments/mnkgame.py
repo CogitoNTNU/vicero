@@ -76,6 +76,13 @@ class MNKGame:
     def get_winner(self, state):
         return state[0] * -1
 
+
+ttt = MNKGame(2, 2, 2)
+
+ttt.state = (1, np.array([[-1, 0],
+                          [0 , 1]]), 2)
+print(ttt.step(1))
+
 """
 ttt = MNKGame(4, 3, 3)
 

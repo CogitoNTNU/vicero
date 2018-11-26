@@ -5,31 +5,8 @@ import random
 from collections import deque
 from vicero.policy import Policy
 from copy import deepcopy
+from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecification
 
-class NetworkSpecification:
-    def __init__(self, hidden_layer_sizes=[24, 24], activation_function=nn.ReLU):
-        self.hidden_layer_sizes = hidden_layer_sizes
-        self.activation_function = activation_function
-
-class Model(nn.Module):
-    # Simple net with one hidden layer
-    def __init__(self, input_size, output_size, spec):
-        super(Model, self).__init__()
-
-        self.fc1 = nn.Linear(input_size, spec.hidden_layer_sizes[0])
-        self.relu1 = spec.activation_function()
-        self.fc2 = nn.Linear(spec.hidden_layer_sizes[0], spec.hidden_layer_sizes[1])
-        self.relu2 = spec.activation_function()
-        self.fc3 = nn.Linear(spec.hidden_layer_sizes[1], output_size)
-
-    def forward(self, x):
-        out = self.fc1(x)
-        out = self.relu1(out)
-        out = self.fc2(out)
-        out = self.relu2(out)
-        out = self.fc3(out)
-        return out
-        
 class DQNAgent:
     def __init__(self, env, spec, alpha=.001, epsilon=1.0, gamma=.95, eps_min=.01, eps_decay=.99, memory_length=2000, state_to_reward=None, render=True):
 
@@ -54,10 +31,11 @@ class DQNAgent:
         optimizer = torch.optim.Adam
         loss_fct = nn.MSELoss
         
-        self.model = Model(feature_size, action_size, spec)    
+        self.model = NeuralNetwork(feature_size, action_size, spec)    
         self.memory = deque(maxlen=memory_length)
         self.model = self.model.to(device)
         self.device = device
+        print(self.model.parameters())
         self.optimizer = optimizer(self.model.parameters(), lr=self.alpha)
         self.criterion = loss_fct()
         
@@ -97,7 +75,6 @@ class DQNAgent:
 
                 if len(self.memory) > batch_size:
                     self.replay(batch_size, eps_decay)
-
 
     def replay(self, batch_size, eps_decay):
         minibatch = random.sample(self.memory, batch_size)

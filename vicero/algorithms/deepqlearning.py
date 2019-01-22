@@ -7,6 +7,18 @@ from vicero.policy import Policy
 from copy import deepcopy
 from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecification
 
+# DQN (Deep Q Networks)
+# DQN is an approximated variant of Q-learning
+# Significant differences:
+# - The table is replaced by a neural network
+# - Experiences are stored in a replay buffer, which is used to train the network
+# The update rule is similarly to Q-learning based on the Bellman equation
+
+# In vicero, certain shared traits of different algorithms are pulled out
+# and placed in the common module. Neural networks and replay buffers are
+# among those. This allows for this module to be written more cleanly, with
+# a more pure focus on the reinforcement learning.
+
 class DQNAgent:
     def __init__(self, env, spec, alpha=.001, epsilon=1.0, gamma=.95, eps_min=.01, eps_decay=.99, memory_length=2000, state_to_reward=None, render=True):
 
@@ -24,7 +36,7 @@ class DQNAgent:
         self.env = env
         self.state_to_reward = state_to_reward
         
-        # the following 7 lines should be elegantly generalized
+        # the following 5 lines should be elegantly generalized
         torch.set_default_tensor_type('torch.DoubleTensor')
         device = torch.device('cpu')
         feature_size, action_size = env.observation_space.shape[0], env.action_space.n

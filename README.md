@@ -7,5 +7,15 @@ pip install -e .
 ```
 This installs the current directory as if it was any python library, but with the -e (editable) flag it will keep the installation up-to-date with any edit to the source code.
 
+# Dependencies
+```
+numpy
+pytorch
+pydot
+pygame
+matplotlib
+gym
+```
+
 # References
 Reinforcement Learning, Sutton and Barto 2018 (in the source abbreviated as S&B18)

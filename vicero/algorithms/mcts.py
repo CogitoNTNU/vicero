@@ -1,6 +1,16 @@
 import numpy as np
 import math
-import pydot
+import pydot # for visualizing the tree
+
+# MCTS (Monte Carlo Tree Search) is an algorithms
+# that plans ahead, estimating Q-values based on 
+# "rollouts", which are simulated episodes.
+
+# This specific implementation is written for two-player
+# zero-sum games, but should be generalized to solve
+# arbitrary environments.
+
+# More details: S&B18 Chapter 8
 
 class MCTS:
     # This is an implementation of MCTS that is focused on readability over performance

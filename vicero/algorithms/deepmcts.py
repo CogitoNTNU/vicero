@@ -1,11 +1,20 @@
 import numpy as np
 import math
-import pydot
+import pydot # for visualizing the tree
 import torch
 import torch.nn as nn
 from copy import deepcopy
 from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecification
 from vicero.algorithms.common.replay_buffer import ReplayBuffer
+
+# Deep MCTS is very similar to the vanilla
+# MCTS, with the one difference being how
+# rollouts are done using policy approximators
+# in the form of neural networks. The networks
+# are trained using a replay buffer containing
+# distributions of Q-values for each action on
+# a given state, based on an episode where that
+# state was at the root of the MCTree.
 
 class DeepMCTS:
 

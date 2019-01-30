@@ -18,4 +18,4 @@ gym
 ```
 
 # References
-Reinforcement Learning, Sutton and Barto 2018 (in the source abbreviated as S&B18)
+Reinforcement Learning, Sutton and Barto 2018 _(abbreviated in the source as S&B18)_

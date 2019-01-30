@@ -3,9 +3,8 @@ import environments.mnkgame as mnkgame
 import numpy as np
 import pygame as pg
 
-
 M, N, K = 3, 3, 3
-cell_size, framerate = 32, 2
+cell_size, framerate = 32, 1000
 pg.init()
 screen = pg.display.set_mode((cell_size * M, cell_size * N))
 clock = pg.time.Clock()

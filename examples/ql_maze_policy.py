@@ -3,6 +3,9 @@ import environments.maze as maze
 from vicero.algorithms.qlearning import Qlearning
 import numpy as np
 
+# In this example the focus is to see frozen policies 
+# compared to each other in real time.
+
 np.random.seed()
 
 board = [[0 ,0 ,0 ,0 ,10,0 ,0 ,0 ],

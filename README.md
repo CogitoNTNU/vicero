@@ -16,6 +16,10 @@ pygame
 matplotlib
 gym
 ```
+# Known issues
+- The term "agent" is used a bit inconsistently through the project, this is a problem that will be solved over time as the naming conventions solidify.
+- TicTacToe, although being one of the example environments, is not handled well by the MCTS implementation at the moment. The concept of a draw being better than a loss needs to be addressed in a more clean way. 
+- The NetworkSpecification class should by all means support more layer types than just fully connected ones, but defining a smart high level interface for this where the user doesn't have to import anything from pytorch will be a challenge.
 
 # References
 Reinforcement Learning, Sutton and Barto 2018 _(abbreviated in the source as S&B18)_

@@ -9,6 +9,8 @@ pg.init()
 screen = pg.display.set_mode((cell_size * M, cell_size * N))
 clock = pg.time.Clock()
 
+# This example is a bit weird, because tictactoe can end in a draw. 
+
 class GameAgent:
     def __init__(self, env, name, algorithm=None):
         self.env = env

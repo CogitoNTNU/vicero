@@ -3,13 +3,13 @@ import environments.nimsim as nimsim
 import numpy as np
 
 class GameAgent:
-    def __init__(self, env, model=None):
+    def __init__(self, env, algorithm=None):
         self.env = env
-        self.model = model
+        self.algorithm = algorithm
     
     def pick_action(self, state, viz=False):
-        if self.model:
-            return self.model.pick_action(state, viz)
+        if self.algorithm:
+            return self.algorithm.pick_action(state, viz)
         return np.random.choice(self.env.action_space)
 
 N, K, M = 4, 2, 1000
@@ -17,8 +17,8 @@ player_id, evil_id = 0, 1
 starting_player = player_id
 ns = nimsim.NimSim(N, K, starting_player=starting_player)
 
-player_agent = GameAgent(ns, model=mcts.MCTS(ns, M))
-evil_agent = GameAgent(ns, model=mcts.MCTS(ns, M))
+player_agent = GameAgent(ns, algorithm=mcts.MCTS(ns, M))
+evil_agent = GameAgent(ns, algorithm=mcts.MCTS(ns, M))
 
 n_games = 10
 wins = 0

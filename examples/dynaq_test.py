@@ -5,6 +5,8 @@ import environments.maze as maze
 import numpy as np
 import matplotlib.pyplot as plt
 
+# [Work in Progress]
+
 np.random.seed()
 
 board = [[0 ,0 ,0 ,0 ,10,0 ,0 ,0 ],

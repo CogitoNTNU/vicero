@@ -9,6 +9,8 @@ More contextually accurate, it is an instance of an
 algorithm with a specific set of parameters.
 Example: A gamma=0.1 QL agents is a different agent
 than a gamma=0.2, but the algorithm is the same.
+An agent is also used in this project as a way to 
+bundle a policy to an environment.
 
 # Environment
 An environment is a generalized concept in this usage.

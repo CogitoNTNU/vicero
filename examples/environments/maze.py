@@ -1,4 +1,5 @@
 import numpy as np
+import pygame as pg
 
 class MazeEnvironment:
 
@@ -6,11 +7,12 @@ class MazeEnvironment:
     UP, RIGHT, DOWN, LEFT = range(4)
     action_space = [UP, LEFT, DOWN, RIGHT]
     
-    def __init__(self, board, wall_penalty = -2, time_penalty = -1):
+    def __init__(self, board, cell_size, wall_penalty=-2, time_penalty=-1):
         # setup 
         self.init_board = np.array(board)
         self.board = np.array(board)
         self.size = len(board)
+        self.cell_size = cell_size
         for i in range(self.size):
             for j in range(self.size):
                 if (board[i][j] == 1):
@@ -79,6 +81,20 @@ class MazeEnvironment:
                 free = True
         self.board[y][x] = 1
 
+    def draw(self, screen, heatmap=None):
+        for i in range(len(self.board[0])):
+            for j in range(len(self.board)):
+                cell = pg.Rect(self.cell_size * i, self.cell_size * j, self.cell_size, self.cell_size)
+                
+                if heatmap is not None:
+                    pg.draw.rect(screen, (np.clip(heatmap[i][j], 0, 220) , 70, 20), cell)
+                else:
+                    pg.draw.rect(screen, (20, 70, 20), cell)
+
+                if self.board[j][i] == -1: pg.draw.rect(screen, (64, 64, 64), cell)
+                if self.board[j][i] == 1:  pg.draw.ellipse(screen, (100, 24, 24), cell)
+                if self.board[j][i] == 10: pg.draw.rect(screen, (180, 180, 64), cell)
+                
     def get_board(self):
         return self.board
 

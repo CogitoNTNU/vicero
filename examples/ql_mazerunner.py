@@ -1,5 +1,5 @@
 import pygame as pg
-import environments.maze as maze
+from environments.maze import MazeEnvironment
 from vicero.algorithms.qlearning import Qlearning
 import numpy as np
 import matplotlib.pyplot as plt
@@ -66,28 +66,20 @@ class GameInstance:
         return None,  False
 
     def draw_world(self):
+        heatmap = np.ndarray(self.board.shape)
         for i in range(len(self.board[0])):
             for j in range(len(self.board)):
-                #qval = model.Q[discretize(i, j)][np.argmax(model.Q[discretize(i, j)])]
                 qval = np.average(self.model.Q[discretize((i, j))])
-                qval = 64 + 50 * qval
+                heatmap[i][j] = 64 + 50 * qval
                 
-                pg.draw.rect(screen, (np.clip(qval, 0, 220) , 70, 20), pg.Rect(self.offset[0] + cell_size * i, self.offset[1] + cell_size * j, cell_size, cell_size))
-                
-                if self.board[j][i] == -1:
-                    pg.draw.rect(screen, (64, 64, 64), pg.Rect(self.offset[0] + cell_size * i, self.offset[1] + cell_size * j, cell_size, cell_size))
-                if self.board[j][i] == 1:
-                    pg.draw.ellipse(screen, (100, 24, 24), pg.Rect(self.offset[0] + cell_size * i, self.offset[1] + cell_size * j, cell_size, cell_size))
-                if self.board[j][i] == 10:
-                    pg.draw.rect(screen, (180, 180, 64), pg.Rect(self.offset[0] + cell_size * i, self.offset[1] + cell_size * j, cell_size, cell_size))
+        self.env.draw(screen, heatmap)
 
-env = maze.MazeEnvironment(board)
+env = MazeEnvironment(board, cell_size)
 
 def discretize(state):
     return state[1] * env.size + state[0]
 
-ql = Qlearning(env, len(board) ** 2, len(maze.MazeEnvironment.action_space), epsilon=0.1, discretize=discretize)
-#ql.train(10000)
+ql = Qlearning(env, len(board) ** 2, len(MazeEnvironment.action_space), epsilon=0.1, discretize=discretize)
 
 game = GameInstance(env, ql, (0, 0))
 

@@ -35,24 +35,11 @@ class GameInstance:
 
     def game_step(self):
         action = self.policy(self.env.state)
-        _, _, done, self.board = self.env.step(action)
-        self.draw_world()
+        _, _, done, _ = self.env.step(action)
+        self.env.draw(screen)
         if done: self.env.reset()
 
-    def draw_world(self):
-        for i in range(len(self.board[0])):
-            for j in range(len(self.board)):
-                
-                pg.draw.rect(screen, (20, 70, 20), pg.Rect(cell_size * i, cell_size * j, cell_size, cell_size))
-                
-                if self.board[j][i] == -1:
-                    pg.draw.rect(screen, (64, 64, 64), pg.Rect(cell_size * i, cell_size * j, cell_size, cell_size))
-                if self.board[j][i] == 1:
-                    pg.draw.ellipse(screen, (100, 24, 24), pg.Rect(cell_size * i, cell_size * j, cell_size, cell_size))
-                if self.board[j][i] == 10:
-                    pg.draw.rect(screen, (180, 180, 64), pg.Rect(cell_size * i, cell_size * j, cell_size, cell_size))
-
-env = MazeEnvironment(board)
+env = MazeEnvironment(board, cell_size)
 
 ql = Qlearning(env, len(board) ** 2, len(MazeEnvironment.action_space), epsilon=0.15, discretize=lambda state : state[1] * env.size + state[0])
 

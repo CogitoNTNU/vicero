@@ -1,6 +1,7 @@
 import pygame as pg
 import environments.maze as maze
 from vicero.algorithms.qlearning import Qlearning
+from vicero.policy import RandomPolicy
 import numpy as np
 
 # In this example the focus is to see frozen policies 
@@ -64,7 +65,10 @@ pro_policy = ql.copy_target_policy()
 
 game = GameInstance(env, better_policy)
 
-policies = [('the bad policy', better_policy),
+random_policy = RandomPolicy(maze.MazeEnvironment.action_space)
+
+policies = [('the random policy', random_policy),
+            ('the bad policy', better_policy),
             ('the not good enough policy', decent_policy),
             ('the good policy', pro_policy)]
 

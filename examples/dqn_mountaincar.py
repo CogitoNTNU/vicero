@@ -1,5 +1,5 @@
 import gym
-from vicero.algorithms.deepqlearning import DQNAgent, NetworkSpecification
+from vicero.algorithms.deepqlearning import DQN, NetworkSpecification
 
 # This function is used to design a custom reward function, overriding 
 # the one from the environment. This one rewards based on the absolute cart speed.
@@ -8,7 +8,7 @@ def state_to_reward(state):
 
 env = gym.make('MountainCar-v0')
 spec = NetworkSpecification()
-agent = DQNAgent(env, spec, state_to_reward=state_to_reward, eps_decay=0.9995)
+agent = DQN(env, spec, state_to_reward=state_to_reward, eps_decay=0.9995)
 
 batch_size = 32
 num_episodes = 1000

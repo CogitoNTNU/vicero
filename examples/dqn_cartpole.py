@@ -1,5 +1,5 @@
 import gym
-from vicero.algorithms.deepqlearning import DQNAgent, NetworkSpecification
+from vicero.algorithms.deepqlearning import DQN, NetworkSpecification
 
 # This example is showing off multiple concepts, for a more pure
 # DQN example, see mountaincar. The first part is obviously to
@@ -12,6 +12,7 @@ from vicero.algorithms.deepqlearning import DQNAgent, NetworkSpecification
 # The Agent class is simply a way to bundle together a frozen policy
 # (not to be furtherly trained) and an environment, so that it can
 # simply be ran greedily as a simulation.
+
 class Agent:
     def __init__(self, env, policy):
         self.env = env
@@ -40,7 +41,7 @@ class Agent:
 env = gym.make('CartPole-v1')
 
 spec = NetworkSpecification()
-dqn = DQNAgent(env, spec, render=False)
+dqn = DQN(env, spec, render=False)
 
 batch_size = 32
 num_episodes = 4

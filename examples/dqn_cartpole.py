@@ -1,5 +1,6 @@
 import gym
 from vicero.algorithms.deepqlearning import DQN, NetworkSpecification
+from vicero.agent import Agent
 
 # This example is showing off multiple concepts, for a more pure
 # DQN example, see mountaincar. The first part is obviously to
@@ -8,35 +9,6 @@ from vicero.algorithms.deepqlearning import DQN, NetworkSpecification
 # a while longer. At last it will show both policies in comparison.
 # This demonstrates both that training actually improves performace
 # as well as the concept of saving a policy.
-
-# The Agent class is simply a way to bundle together a frozen policy
-# (not to be furtherly trained) and an environment, so that it can
-# simply be ran greedily as a simulation.
-
-class Agent:
-    def __init__(self, env, policy):
-        self.env = env
-        self.policy = policy
-        
-        # These are just to collect some data to compare the agents in the end 
-        self.total_score = 0
-        self.n_episodes = 0
-
-    def play(self, n=-1, measure=False):
-        state = self.env.reset()
-        temp_score = 0
-        while n != 0:
-            action = self.policy(state)
-            state, _, done, _ = self.env.step(action)
-            self.env.render()
-            temp_score += 1
-            if done: 
-                self.env.reset()
-                if measure:
-                    self.n_episodes += 1
-                    self.total_score += temp_score
-                    temp_score = 0
-            n -= 1
 
 env = gym.make('CartPole-v1')
 
@@ -54,7 +26,8 @@ dqn.train(num_episodes, batch_size, training_iter, verbose=True, completion_rewa
 print('playing poorly trained agent (A).')
 poor_policy = dqn.copy_target_policy()
 agent_a = Agent(env, poor_policy)
-agent_a.play(500)
+for _ in range(500):
+    agent_a.step(render=True)
 
 print('training...')
 dqn.train(num_episodes * 5, batch_size, training_iter, verbose=True, completion_reward=completion_reward, plot=True, eps_decay=True)
@@ -62,10 +35,12 @@ dqn.train(num_episodes * 5, batch_size, training_iter, verbose=True, completion_
 print('playing better agent (B).')
 better_policy = dqn.copy_target_policy()
 agent_b = Agent(env, better_policy)
-agent_b.play(500, measure=True)
+for _ in range(500):
+    agent_b.step(render=True, measure=True)
 
 print('playing poorly trained agent again (A).')
-agent_a.play(500, measure=True)
+for _ in range(500):
+    agent_a.step(render=True, measure=True)
 
 env.close()
-print('Average durations (higher is better): A={}, B={}'.format(agent_a.total_score // agent_a.n_episodes, agent_b.total_score // agent_b.n_episodes))
+print('Agent performance (average duration): A={:.1f}, B={:.1f}'.format(agent_a.performance, agent_b.performance))

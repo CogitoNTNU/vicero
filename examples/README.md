@@ -54,6 +54,11 @@ project it is mostly used for visualizing the environment.
 Adding an agent that responds to user input is also
 possible, if you want to interact with the AI :)
 
+In this project, the actual game loop are controlled on
+the "user" side of things, this is to enable a full control
+over the game flow. Doing the actual draw calls shold be 
+left to the environment class.
+
 ### Matplotlib
 More traditional plotting is typically more useful than a
 simulation when you are interested in the performance rather 

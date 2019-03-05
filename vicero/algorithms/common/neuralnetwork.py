@@ -25,8 +25,7 @@ class NeuralNetwork(nn.Module):
             prev_size = hidden_layer_size
         
         self.layers.append(nn.Linear(prev_size, output_size))
-
-        self.add_module("output_payer", self.layers[-1])
+        self.add_module("output_layer", self.layers[-1])
             
     def forward(self, x):
         tensor = self.layers[0](x)

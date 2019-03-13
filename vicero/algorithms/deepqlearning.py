@@ -56,14 +56,16 @@ class DQN:
         self.history = []
         self.maxq_history = []
         self.maxq_temp = float('-inf')
+        self.loss_history = []
+        self.loss_temp = 0
+        self.loss_count = 0
 
     def train(self, num_episodes, batch_size, training_iter=500, completion_reward=None, verbose=False, plot=False, eps_decay=True):
         
         for e in range(num_episodes):
             self.epsilon = self.epsilon_start - (self.epsilon_start - self.epsilon_end) * (e / num_episodes)
             state = self.env.reset()
-            state = torch.from_numpy(np.flip(state,axis=0).copy())
-            state = state.to(self.device)
+            state = torch.from_numpy(state).to(self.device)#torch.from_numpy(np.flip(state,axis=0).copy())
         
             done = False
             score = 0
@@ -74,13 +76,7 @@ class DQN:
             for time in range(training_iter):
                 if self.render:
                     self.env.render()
-
-                #if verbose:
-                #    if time / training_iter * 10 > progress:
-                #        print('{}%'.format(progress * 10))
-                #        progress += 1
                         
-
                 action = self.exploratory_action(state, record_maxq=True)
                 next_state, reward, done, _ = self.env.step(action)
                 
@@ -92,25 +88,26 @@ class DQN:
                 
                 score += reward
 
-                next_state = torch.from_numpy(np.flip(next_state,axis=0).copy()).to(self.device)
+                next_state = torch.from_numpy(next_state).to(self.device)#np.flip(next_state,axis=0).copy()).to(self.device)
 
                 self.remember(state, action, reward, next_state, done)
+                
                 state = next_state
-
-                if done and verbose:
-                    print("episode: {}/{}, score: {}, e: {:.2}".format(e, num_episodes, score, self.epsilon))
-                    self.history.append(score)
-                    self.maxq_history.append(self.maxq_temp)
-                    break
-
+                
+                if done: break
+                
                 if len(self.memory) > batch_size:
                     self.replay(batch_size, eps_decay)
 
-            if not done and verbose:
-                print("episode: {}/{}, score: {}, e: {:.2}".format(e, num_episodes, score, self.epsilon))
+            if verbose:
+                print("episode: {}/{}, score: {}, e: {:.2}, maxQ={:.2}".format(e, num_episodes, score, self.epsilon, self.maxq_temp))
                 self.history.append(score)
                 self.maxq_history.append(self.maxq_temp)
-
+                if self.loss_count > 0:
+                    self.loss_history.append(self.loss_temp / self.loss_count)
+                    self.loss_temp = 0
+                    self.loss_count = 0
+                
 
     def replay(self, batch_size, eps_decay):
         minibatch = random.sample(self.memory, batch_size)
@@ -129,6 +126,9 @@ class DQN:
             #print(prediction)
 
             loss = self.criterion(prediction, target_f)
+            self.loss_temp += float(loss)
+            self.loss_count += 1
+
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -140,7 +140,7 @@ class DQN:
         
         if record_maxq:
             self.maxq_temp = max([self.maxq_temp] + list(outputs))
-            #print(self.maxq_temp)
+
         return outputs.max(0)[1].numpy()
 
     def greedy_action(self, state):
@@ -159,10 +159,13 @@ class DQN:
         cpy = deepcopy(self.nnet)
         device = self.device
         def policy(state):
-            state = torch.from_numpy(np.flip(state,axis=0).copy())
-            state = state.to(device)
+            state = torch.from_numpy(state).to(device)
+            #state = torch.from_numpy(np.flip(state,axis=0).copy())
+            #state = state.to(device)
             distribution = cpy(state)
-            if verbose: print(distribution)
+            if verbose:
+                print('state:', state) 
+                print('Q(state):', distribution)
             return distribution.max(0)[1].numpy()
 
         return Policy(policy)

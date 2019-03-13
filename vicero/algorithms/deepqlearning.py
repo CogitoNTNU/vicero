@@ -20,7 +20,7 @@ from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecifi
 # a more pure focus on the reinforcement learning.
 
 class DQN:
-    def __init__(self, env, spec, alpha=.001, epsilon=1.0, gamma=.95, eps_min=.01, eps_decay=.99, memory_length=2000, state_to_reward=None, render=True, anet_path=None):
+    def __init__(self, env, spec, alpha=.001, gamma=.95, epsilon_start=1.0, epsilon_end=1.0, memory_length=2000, state_to_reward=None, render=True, anet_path=None):
 
         # learning rate
         self.alpha = alpha
@@ -29,10 +29,10 @@ class DQN:
         self.gamma = gamma
 
         # exploration rate
-        self.epsilon = epsilon
-        self.epsilon_min = eps_min
-        self.epsilon_decay = eps_decay
-        
+        self.epsilon_start = epsilon_start
+        self.epsilon_end = epsilon_end
+        self.epsilon = self.epsilon_start
+
         self.env = env
         self.state_to_reward = state_to_reward
         
@@ -54,12 +54,13 @@ class DQN:
         self.render = render
         
         self.history = []
-        
+        self.maxq_history = []
+        self.maxq_temp = float('-inf')
 
-    def train(self, num_episodes, batch_size, training_iter=500, completion_reward=0, verbose=False,
-              plot=False, eps_decay=True):
-        # batch_size : number of replays to perform at each training step
+    def train(self, num_episodes, batch_size, training_iter=500, completion_reward=None, verbose=False, plot=False, eps_decay=True):
+        
         for e in range(num_episodes):
+            self.epsilon = self.epsilon_start - (self.epsilon_start - self.epsilon_end) * (e / num_episodes)
             state = self.env.reset()
             state = torch.from_numpy(np.flip(state,axis=0).copy())
             state = state.to(self.device)
@@ -68,6 +69,8 @@ class DQN:
             score = 0
 
             progress = 0
+
+            self.maxq_temp = float('-inf')
             for time in range(training_iter):
                 if self.render:
                     self.env.render()
@@ -78,13 +81,14 @@ class DQN:
                 #        progress += 1
                         
 
-                action = self.exploratory_action(state)
+                action = self.exploratory_action(state, record_maxq=True)
                 next_state, reward, done, _ = self.env.step(action)
                 
                 if self.state_to_reward:
                     reward = self.state_to_reward(next_state)
                 
-                reward = reward if not done else completion_reward
+                if completion_reward is not None and done:
+                    reward = completion_reward
                 
                 score += reward
 
@@ -96,6 +100,7 @@ class DQN:
                 if done and verbose:
                     print("episode: {}/{}, score: {}, e: {:.2}".format(e, num_episodes, score, self.epsilon))
                     self.history.append(score)
+                    self.maxq_history.append(self.maxq_temp)
                     break
 
                 if len(self.memory) > batch_size:
@@ -104,6 +109,7 @@ class DQN:
             if not done and verbose:
                 print("episode: {}/{}, score: {}, e: {:.2}".format(e, num_episodes, score, self.epsilon))
                 self.history.append(score)
+                self.maxq_history.append(self.maxq_temp)
 
 
     def replay(self, batch_size, eps_decay):
@@ -127,13 +133,14 @@ class DQN:
             loss.backward()
             self.optimizer.step()
 
-        if (self.epsilon > self.epsilon_min) and eps_decay:
-            self.epsilon *= self.epsilon_decay
-
-    def exploratory_action(self, state):
+    def exploratory_action(self, state, record_maxq=False):
         if np.random.rand() <= self.epsilon:
             return np.random.choice(range(self.n_actions))
         outputs = self.nnet(state)
+        
+        if record_maxq:
+            self.maxq_temp = max([self.maxq_temp] + list(outputs))
+            #print(self.maxq_temp)
         return outputs.max(0)[1].numpy()
 
     def greedy_action(self, state):

@@ -18,7 +18,7 @@ board = np.array(board)
 
 cell_size  = 48 # the size of one game cell, in pixels
 pad_cells  = 1  # padding between the visualizations
-framerate  = 60 # frames per second
+framerate  = 15 # frames per second
 
 # pygame setup
 pg.init()

@@ -30,7 +30,7 @@ for _ in range(500):
     agent_a.step(render=True)
 
 print('training...')
-dqn.train(num_episodes * 5, batch_size, training_iter, verbose=True, completion_reward=completion_reward, plot=True, eps_decay=True)
+dqn.train(num_episodes * 10, batch_size, training_iter, verbose=True, completion_reward=completion_reward, plot=True, eps_decay=True)
 
 print('playing better agent (B).')
 better_policy = dqn.copy_target_policy()

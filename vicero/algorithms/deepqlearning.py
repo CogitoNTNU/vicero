@@ -20,7 +20,7 @@ from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecifi
 # a more pure focus on the reinforcement learning.
 
 class DQN:
-    def __init__(self, env, spec, alpha=.001, gamma=.95, epsilon_start=1.0, epsilon_end=1.0, memory_length=2000, state_to_reward=None, render=True, anet_path=None):
+    def __init__(self, env, spec=None, alpha=1e-3, gamma=.95, epsilon_start=1.0, epsilon_end=1e-3, memory_length=2000, state_to_reward=None, render=True, qnet_path=None, qnet=None):
 
         # learning rate
         self.alpha = alpha
@@ -44,12 +44,18 @@ class DQN:
         optimizer = torch.optim.Adam
         loss_fct = nn.MSELoss
         
-        self.nnet = NeuralNetwork(feature_size, self.n_actions, spec).to(self.device)
-        if anet_path is not None:
-            self.nnet.load_state_dict(torch.load(anet_path))
+        if qnet is not None:
+            self.qnet = qnet
+        elif spec is not None:
+            self.qnet = NeuralNetwork(feature_size, self.n_actions, spec).to(self.device)
+        else:
+            raise Exception('The qnet, qnet_path and spec argument cannot all be None!')
+
+        if qnet_path is not None:
+            self.qnet.load_state_dict(torch.load(qnet_path))
 
         self.memory = deque(maxlen=memory_length)
-        self.optimizer = optimizer(self.nnet.parameters(), lr=self.alpha)
+        self.optimizer = optimizer(self.qnet.parameters(), lr=self.alpha)
         self.criterion = loss_fct()
         self.render = render
         
@@ -64,6 +70,7 @@ class DQN:
         
         for e in range(num_episodes):
             self.epsilon = self.epsilon_start - (self.epsilon_start - self.epsilon_end) * (e / num_episodes)
+        
             state = self.env.reset()
             state = torch.from_numpy(state).to(self.device)#torch.from_numpy(np.flip(state,axis=0).copy())
         
@@ -100,7 +107,7 @@ class DQN:
                     self.replay(batch_size, eps_decay)
 
             if verbose:
-                print("episode: {}/{}, score: {}, e: {:.2}, maxQ={:.2}".format(e, num_episodes, score, self.epsilon, self.maxq_temp))
+                print("episode: {}/{}, score: {:.2}, e: {:.2}, maxQ={:.2}".format(e, num_episodes, score, self.epsilon, self.maxq_temp))
                 self.history.append(score)
                 self.maxq_history.append(self.maxq_temp)
                 if self.loss_count > 0:
@@ -115,14 +122,15 @@ class DQN:
         for state, action, reward, next_state, done in minibatch:
             state = state.to(self.device)
             reward = torch.tensor(reward, dtype=torch.double, requires_grad=False)
+            #if abs(reward) > 10: print(reward)
             target = reward
             if not done:
-                outputs = self.nnet(next_state)
+                outputs = self.qnet(next_state)
                 target = (reward + self.gamma * torch.max(outputs))
 
-            target_f = self.nnet(state)
+            target_f = self.qnet(state)
             target_f[action] = target
-            prediction = self.nnet(state)
+            prediction = self.qnet(state)
             #print(prediction)
 
             loss = self.criterion(prediction, target_f)
@@ -136,7 +144,7 @@ class DQN:
     def exploratory_action(self, state, record_maxq=False):
         if np.random.rand() <= self.epsilon:
             return np.random.choice(range(self.n_actions))
-        outputs = self.nnet(state)
+        outputs = self.qnet(state)
         
         if record_maxq:
             self.maxq_temp = max([self.maxq_temp] + list(outputs))
@@ -144,19 +152,17 @@ class DQN:
         return outputs.max(0)[1].numpy()
 
     def greedy_action(self, state):
-        outputs = self.nnet(state)
+        outputs = self.qnet(state)
         return outputs.max(0)[1].numpy()
 
     def remember(self, state, action, reward, next_state, done):
-        #if reward == 0 and np.random.uniform() < 0.95:
-        #    return # test
         self.memory.append((state, action, reward, next_state, done))
 
     def save(self, name):
-        torch.save(self.nnet.state_dict(), name)
+        torch.save(self.qnet.state_dict(), name)
 
     def copy_target_policy(self, verbose=False):
-        cpy = deepcopy(self.nnet)
+        cpy = deepcopy(self.qnet)
         device = self.device
         def policy(state):
             state = torch.from_numpy(state).to(device)

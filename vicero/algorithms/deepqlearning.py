@@ -158,7 +158,7 @@ class DQN:
     def action_distribution(self, state):
         state = torch.from_numpy(state).to(self.device)
         out = self.qnet(state)
-        return torch.nn.Softmax(dim=0)(out)
+        return nn.Softmax(dim=0)(out)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))

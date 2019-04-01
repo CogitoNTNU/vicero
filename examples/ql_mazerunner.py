@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from environments.maze import MazeEnvironment
 from vicero.algorithms.qlearning import Qlearning
 from vicero.agent import Agent
+from vicero.visualization.overlay import ActionDistributionOverlay as ADO
 
 board = [[0  ,0  ,0  ,0  ,10 ,0  ,0  ,0  ],
          [0  ,0  ,-1 ,-1 ,-1 ,0  ,0  ,0  ],
@@ -18,7 +19,7 @@ board = np.array(board)
 
 cell_size  = 48 # the size of one game cell, in pixels
 pad_cells  = 1  # padding between the visualizations
-framerate  = 15 # frames per second
+framerate  = 30 # frames per second
 
 # pygame setup
 pg.init()
@@ -66,6 +67,9 @@ def plot_durations(steps):
 
     plt.pause(0.001) # To update plots
 
+
+ado = ADO(ql, pg.Rect(0, 0, 100, 100))
+
 while True:
     i = 0
     step_list, done = game.game_step()
@@ -79,6 +83,7 @@ while True:
             heatmap[i][j] = 64 + 50 * qval
 
     env.draw(screen, heatmap)
+    ado.render(screen, game.env.state)
 
     pg.display.flip()
     clock.tick(framerate)

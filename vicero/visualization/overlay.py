@@ -14,7 +14,7 @@ class ActionDistributionOverlay(Overlay):
         bar_w = self.rect.w // len(sm)
         
         for i in range(len(sm)):
-            pg.draw.rect(screen, (0, 200, 0), pg.Rect(self.rect.x + i * bar_w, self.rect.h, bar_w, -self.rect.h * sm[i]))
-            pg.draw.rect(screen, (0, 160, 0), pg.Rect(self.rect.x + i * bar_w, self.rect.h, bar_w, -self.rect.h * sm[i]), 1)
+            pg.draw.rect(screen, (0, 200, 0), pg.Rect(self.rect.x + i * bar_w, self.rect.y + self.rect.h, bar_w, -self.rect.h * sm[i]))
+            pg.draw.rect(screen, (0, 160, 0), pg.Rect(self.rect.x + i * bar_w, self.rect.y + self.rect.h, bar_w, -self.rect.h * sm[i]), 1)
         
 

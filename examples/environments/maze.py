@@ -1,5 +1,9 @@
 import numpy as np
 import pygame as pg
+from pathlib import Path
+mod_path = Path(__file__).parent
+
+cheese_color = (255, 212, 0)
 
 class MazeEnvironment:
 
@@ -18,6 +22,9 @@ class MazeEnvironment:
                 if (board[i][j] == 1):
                     self.init_pos = (j, i)
                     self.state = self.init_pos
+        
+        self.img_rat = pg.image.load(str(mod_path) + '/rat.png')
+        self.img_rat = pg.transform.scale(self.img_rat, (cell_size, cell_size))
 
         # reward specification
         self.wall_penalty = wall_penalty
@@ -91,9 +98,11 @@ class MazeEnvironment:
                 else:
                     pg.draw.rect(screen, (20, 70, 20), cell)
 
-                if self.board[j][i] == -1: pg.draw.rect(screen, (64, 64, 64), cell)
-                if self.board[j][i] == 1:  pg.draw.ellipse(screen, (100, 24, 24), cell)
-                if self.board[j][i] == 10: pg.draw.rect(screen, (180, 180, 64), cell)
+                if self.board[j][i] == -1: 
+                    pg.draw.rect(screen, (48, 48, 48), cell)
+                    pg.draw.rect(screen, (16, 16, 16), cell, 1)
+                if self.board[j][i] == 1:  screen.blit(self.img_rat, cell)
+                if self.board[j][i] == 10: pg.draw.rect(screen, cheese_color, cell)
                 
     def get_board(self):
         return self.board

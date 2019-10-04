@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import torch
+import torch.nn as nn
 from copy import deepcopy
 from vicero.policy import Policy
 
@@ -57,6 +59,10 @@ class Qlearning:
     
     def get_epsilon(self):
         return self.epsilon
+
+    def action_distribution(self, state):
+        out = torch.tensor(self.Q[self.discretize(state)])
+        return nn.Softmax(dim=0)(out)
 
     def copy_target_policy(self):
         cpy = deepcopy(self)

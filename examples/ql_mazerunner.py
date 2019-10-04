@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 from environments.maze import MazeEnvironment
 from vicero.algorithms.qlearning import Qlearning
 from vicero.agent import Agent
+from vicero.visualization.overlay import ActionDistributionOverlay as ADO
 
+"""
 board = [[0  ,0  ,0  ,0  ,10 ,0  ,0  ,0  ],
          [0  ,0  ,-1 ,-1 ,-1 ,0  ,0  ,0  ],
          [0  ,0  ,-1 ,0  ,0  ,-1 ,0  ,0  ],
@@ -13,12 +15,23 @@ board = [[0  ,0  ,0  ,0  ,10 ,0  ,0  ,0  ],
          [0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ],
          [0  ,0  ,0  ,-1 ,-1 ,0  ,0  ,0  ],
          [0  ,0  ,0  ,1  ,0  ,0  ,0  ,0  ]]
+"""
+board = [[0  ,0  ,0  ,-1 ,10 ,0  ,0  ,0  ,0  ,0  ],
+         [0  ,-1 ,0  ,-1 ,0  ,-1 ,0  ,-1 ,0  ,-1 ],
+         [0  ,-1 ,0  ,-1 ,0  ,0  ,0  ,0  ,0  ,0  ],
+         [0  ,0  ,0  ,-1 ,-1 ,-1 ,-1 ,-1 ,0  ,0  ],
+         [0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ],
+         [0  ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,0  ],
+         [0  ,-1 ,0  ,0  ,0  ,0  ,0  ,0  ,-1 ,0  ],
+         [0  ,-1 ,0  ,0  ,0  ,0  ,-1 ,0  ,-1 ,0  ],
+         [0  ,0  ,0  ,0  ,0  ,0  ,-1 ,0  ,0  ,0  ],
+         [0  ,1  ,0  ,0  ,0  ,0  ,-1 ,0  ,0  ,0  ]]
 
 board = np.array(board)
 
-cell_size  = 48 # the size of one game cell, in pixels
+cell_size  = 80 # the size of one game cell, in pixels
 pad_cells  = 1  # padding between the visualizations
-framerate  = 15 # frames per second
+framerate  = 500  # frames per second
 
 # pygame setup
 pg.init()
@@ -53,7 +66,7 @@ env = MazeEnvironment(board, cell_size)
 def discretize(state):
     return state[1] * env.size + state[0]
 
-ql = Qlearning(env, len(board) ** 2, len(MazeEnvironment.action_space), epsilon=0.1, discretize=discretize)
+ql = Qlearning(env, len(board) ** 2, len(MazeEnvironment.action_space), epsilon=0.1, gamma=0.8, discretize=discretize)
 game = GameInstance(env, ql)
 
 def plot_durations(steps):
@@ -66,11 +79,17 @@ def plot_durations(steps):
 
     plt.pause(0.001) # To update plots
 
+
+ado = ADO(ql, pg.Rect(screen.get_width() - 128, screen.get_height() - 128, 128, 128))
+
+for _ in range(0):
+    step_list, done = game.game_step()
+    
 while True:
     i = 0
     step_list, done = game.game_step()
-    if done:
-        plot_durations(step_list)
+    #if done:
+    #    plot_durations(step_list)
     
     heatmap = np.ndarray(board.shape)
     for i in range(len(board[0])):
@@ -79,6 +98,10 @@ while True:
             heatmap[i][j] = 64 + 50 * qval
 
     env.draw(screen, heatmap)
+    ado.render(screen, game.env.state)
 
     pg.display.flip()
-    clock.tick(framerate)
+    if framerate > 10:
+        framerate = framerate * 0.999
+    
+    clock.tick(int(framerate))

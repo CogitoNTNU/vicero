@@ -40,14 +40,14 @@ class DQN:
 
         # the following 4 lines should be elegantly generalized
         torch.set_default_tensor_type('torch.DoubleTensor')
-        feature_size, self.n_actions = env.observation_space.shape[0], env.action_space.n
+        self.feature_size, self.n_actions = env.observation_space.shape[0], env.action_space.n
         optimizer = torch.optim.Adam
         loss_fct = nn.MSELoss
         
         if qnet is not None:
             self.qnet = qnet
         elif spec is not None:
-            self.qnet = NeuralNetwork(feature_size, self.n_actions, spec).to(self.device)
+            self.qnet = NeuralNetwork(self.feature_size, self.n_actions, spec).to(self.device)
         else:
             raise Exception('The qnet, qnet_path and spec argument cannot all be None!')
 
@@ -81,8 +81,8 @@ class DQN:
 
             self.maxq_temp = float('-inf')
             for time in range(training_iter):
-                if self.render:
-                    self.env.render()
+                
+                if self.render: self.env.render()
                         
                 action = self.exploratory_action(state, record_maxq=True)
                 next_state, reward, done, _ = self.env.step(action)
@@ -154,6 +154,11 @@ class DQN:
     def greedy_action(self, state):
         outputs = self.qnet(state)
         return outputs.max(0)[1].numpy()
+
+    def action_distribution(self, state):
+        state = torch.from_numpy(state).to(self.device)
+        out = self.qnet(state)
+        return nn.Softmax(dim=0)(out)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))

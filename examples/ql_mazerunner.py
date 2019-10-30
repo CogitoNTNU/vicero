@@ -1,35 +1,28 @@
 import pygame as pg
 import numpy as np
 import matplotlib.pyplot as plt
-from environments.maze import MazeEnvironment
+from environments.maze import MazeEnvironment, maze
 from vicero.algorithms.qlearning import Qlearning
 from vicero.agent import Agent
 from vicero.visualization.overlay import ActionDistributionOverlay as ADO
+import random
 
-"""
-board = [[0  ,0  ,0  ,0  ,10 ,0  ,0  ,0  ],
-         [0  ,0  ,-1 ,-1 ,-1 ,0  ,0  ,0  ],
-         [0  ,0  ,-1 ,0  ,0  ,-1 ,0  ,0  ],
-         [0  ,0  ,0  ,0  ,0  ,0  ,0  ,-1 ],
-         [10 ,0  ,0  ,0  ,0  ,0  ,0  ,0  ],
-         [0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ],
-         [0  ,0  ,0  ,-1 ,-1 ,0  ,0  ,0  ],
-         [0  ,0  ,0  ,1  ,0  ,0  ,0  ,0  ]]
-"""
-board = [[0  ,0  ,0  ,-1 ,10 ,0  ,0  ,0  ,0  ,0  ],
-         [0  ,-1 ,0  ,-1 ,0  ,-1 ,0  ,-1 ,0  ,-1 ],
-         [0  ,-1 ,0  ,-1 ,0  ,0  ,0  ,0  ,0  ,0  ],
-         [0  ,0  ,0  ,-1 ,-1 ,-1 ,-1 ,-1 ,0  ,0  ],
-         [0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ,0  ],
-         [0  ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,-1 ,0  ],
-         [0  ,-1 ,0  ,0  ,0  ,0  ,0  ,0  ,-1 ,0  ],
-         [0  ,-1 ,0  ,0  ,0  ,0  ,-1 ,0  ,-1 ,0  ],
-         [0  ,0  ,0  ,0  ,0  ,0  ,-1 ,0  ,0  ,0  ],
-         [0  ,1  ,0  ,0  ,0  ,0  ,-1 ,0  ,0  ,0  ]]
+gen = maze(32, 32)
 
-board = np.array(board)
+board = np.zeros(gen.shape)
 
-cell_size  = 80 # the size of one game cell, in pixels
+free_cells = []
+for row in range(board.shape[0]):
+    for col in range(board.shape[1]):
+        if gen[row][col]:
+            board[row][col] = -1
+        else:
+            free_cells.append((row, col))
+
+random.shuffle(free_cells)
+board[free_cells[0][0]][free_cells[0][1]] = 10
+
+cell_size  = 24 # the size of one game cell, in pixels
 pad_cells  = 1  # padding between the visualizations
 framerate  = 500  # frames per second
 
@@ -82,7 +75,7 @@ def plot_durations(steps):
 
 ado = ADO(ql, pg.Rect(screen.get_width() - 128, screen.get_height() - 128, 128, 128))
 
-for _ in range(0):
+for _ in range(500000):
     step_list, done = game.game_step()
     
 while True:
@@ -97,7 +90,7 @@ while True:
             qval = np.average(ql.Q[discretize((i, j))])
             heatmap[i][j] = 64 + 50 * qval
 
-    env.draw(screen, heatmap)
+    env.draw(screen)
     ado.render(screen, game.env.state)
 
     pg.display.flip()

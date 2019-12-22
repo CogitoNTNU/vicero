@@ -20,7 +20,7 @@ from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecifi
 # a more pure focus on the reinforcement learning.
 
 class DQN:
-    def __init__(self, env, spec=None, alpha=1e-3, gamma=.95, epsilon_start=1.0, epsilon_end=1e-3, memory_length=2000, state_to_reward=None, render=True, qnet_path=None, qnet=None):
+    def __init__(self, env, spec=None, alpha=1e-3, gamma=.95, epsilon_start=0.9, epsilon_end=1e-3, memory_length=2000, state_to_reward=None, render=True, qnet_path=None, qnet=None, plotter=None, caching_interval=1000):
 
         # learning rate
         self.alpha = alpha
@@ -35,18 +35,18 @@ class DQN:
 
         self.env = env
         self.state_to_reward = state_to_reward
-        
+        self.plotter = plotter
         self.device = torch.device('cpu')
 
         # the following 4 lines should be elegantly generalized
         torch.set_default_tensor_type('torch.DoubleTensor')
-        self.feature_size, self.n_actions = env.observation_space.shape[0], env.action_space.n
         optimizer = torch.optim.Adam
         loss_fct = nn.MSELoss
-        
+        self.n_actions = env.action_space.n
         if qnet is not None:
             self.qnet = qnet
         elif spec is not None:
+            self.feature_size = env.observation_space.shape[0]
             self.qnet = NeuralNetwork(self.feature_size, self.n_actions, spec).to(self.device)
         else:
             raise Exception('The qnet, qnet_path and spec argument cannot all be None!')
@@ -65,10 +65,16 @@ class DQN:
         self.loss_history = []
         self.loss_temp = 0
         self.loss_count = 0
+        self.cached_qnet = deepcopy(self.qnet)
+        self.caching_interval = caching_interval
 
-    def train(self, num_episodes, batch_size, training_iter=500, completion_reward=None, verbose=False, plot=False, eps_decay=True):
-        
+    def train(self, num_episodes, batch_size, training_iter=5000, completion_reward=None, verbose=False, plot=False, eps_decay=True):
+        iterations = 0
+
         for e in range(num_episodes):
+            if e > 0 and e % 100 == 0:
+                torch.save(self.qnet, 'qnet_{}.dqn'.format(e))
+
             self.epsilon = self.epsilon_start - (self.epsilon_start - self.epsilon_end) * (e / num_episodes)
         
             state = self.env.reset()
@@ -86,7 +92,8 @@ class DQN:
                         
                 action = self.exploratory_action(state, record_maxq=True)
                 next_state, reward, done, _ = self.env.step(action)
-                
+                iterations += 1
+
                 if self.state_to_reward:
                     reward = self.state_to_reward(next_state)
                 
@@ -103,13 +110,20 @@ class DQN:
                 
                 if done: break
                 
+                if iterations % self.caching_interval == 0:
+                    self.cached_qnet = deepcopy(self.qnet)
+
                 if len(self.memory) > batch_size:
                     self.replay(batch_size, eps_decay)
 
+            self.history.append(score)
+            self.maxq_history.append(self.maxq_temp)
+            
+            if self.plotter is not None:
+                self.plotter(self.history)
+            
             if verbose:
-                print("episode: {}/{}, score: {:.2}, e: {:.2}, maxQ={:.2}".format(e, num_episodes, score, self.epsilon, self.maxq_temp))
-                self.history.append(score)
-                self.maxq_history.append(self.maxq_temp)
+                print("episode: {}/{}, score: {:.2}, e: {:.2}, maxQ={:.2}, len(memory)={}".format(e, num_episodes, float(score), self.epsilon, self.maxq_temp, len(self.memory)))
                 if self.loss_count > 0:
                     self.loss_history.append(self.loss_temp / self.loss_count)
                     self.loss_temp = 0
@@ -122,17 +136,17 @@ class DQN:
         for state, action, reward, next_state, done in minibatch:
             state = state.to(self.device)
             reward = torch.tensor(reward, dtype=torch.double, requires_grad=False)
-            #if abs(reward) > 10: print(reward)
+            
             target = reward
-            if not done:
-                outputs = self.qnet(next_state)
-                target = (reward + self.gamma * torch.max(outputs))
+            
+            outputs = self.cached_qnet(next_state)
+            target = (reward + self.gamma * torch.max(outputs))
 
             target_f = self.qnet(state)
             target_f[action] = target
+            
             prediction = self.qnet(state)
-            #print(prediction)
-
+            
             loss = self.criterion(prediction, target_f)
             self.loss_temp += float(loss)
             self.loss_count += 1
@@ -144,11 +158,11 @@ class DQN:
     def exploratory_action(self, state, record_maxq=False):
         if np.random.rand() <= self.epsilon:
             return np.random.choice(range(self.n_actions))
+        
         outputs = self.qnet(state)
         
         if record_maxq:
             self.maxq_temp = max([self.maxq_temp] + list(outputs))
-
         return outputs.max(0)[1].numpy()
 
     def greedy_action(self, state):

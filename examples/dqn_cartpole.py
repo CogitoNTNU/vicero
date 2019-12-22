@@ -13,7 +13,7 @@ from vicero.agent import Agent
 env = gym.make('CartPole-v1')
 
 spec = NetworkSpecification()
-dqn = DQN(env, spec, render=False)
+dqn = DQN(env, spec, render=False, caching_interval=200)
 
 batch_size = 32
 num_episodes = 4

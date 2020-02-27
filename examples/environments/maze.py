@@ -81,6 +81,7 @@ class MazeEnvironment:
         self.state = random.choice(self.free_cells)
         x, y = self.state
         self.board[y][x] = 1
+        return self.state
 
     def randomize(self):
         self.board = np.array(self.init_board)

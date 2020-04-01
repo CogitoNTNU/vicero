@@ -67,69 +67,68 @@ class DQN:
         self.loss_count = 0
         self.cached_qnet = deepcopy(self.qnet)
         self.caching_interval = caching_interval
+        self.total_iterations = 0
 
-    def train(self, num_episodes, batch_size, training_iter=5000, completion_reward=None, verbose=False, plot=False, eps_decay=True):
-        iterations = 0
-
-        for e in range(num_episodes):
-            if e > 0 and e % 100 == 0:
-                torch.save(self.qnet, 'qnet_{}.dqn'.format(e))
-
-            self.epsilon = self.epsilon_start - (self.epsilon_start - self.epsilon_end) * (e / num_episodes)
+    def train_episode(self, e, num_episodes, batch_size, training_iter=5000, completion_reward=None, verbose=False, plot=False, eps_decay=True):
+        self.epsilon = self.epsilon_start - (self.epsilon_start - self.epsilon_end) * (e / num_episodes)
         
-            state = self.env.reset()
-            state = torch.from_numpy(state).to(self.device)#torch.from_numpy(np.flip(state,axis=0).copy())
+        state = self.env.reset()
+        state = torch.from_numpy(state).to(self.device)#torch.from_numpy(np.flip(state,axis=0).copy())
         
-            done = False
-            score = 0
+        done = False
+        score = 0
 
-            progress = 0
+        progress = 0
 
-            self.maxq_temp = float('-inf')
-            for time in range(training_iter):
+        self.maxq_temp = float('-inf')
+        for time in range(training_iter):
                 
-                if self.render: self.env.render()
+            if self.render: self.env.render()
                         
-                action = self.exploratory_action(state, record_maxq=True)
-                next_state, reward, done, _ = self.env.step(action)
-                iterations += 1
+            action = self.exploratory_action(state, record_maxq=True)
+            next_state, reward, done, _ = self.env.step(action)
+            self.total_iterations += 1
 
-                if self.state_to_reward:
-                    reward = self.state_to_reward(next_state)
+            if self.state_to_reward:
+                reward = self.state_to_reward(next_state)
                 
-                if completion_reward is not None and done:
-                    reward = completion_reward
+            if completion_reward is not None and done:
+                reward = completion_reward
                 
-                score += reward
+            score += reward
 
-                next_state = torch.from_numpy(next_state).to(self.device)#np.flip(next_state,axis=0).copy()).to(self.device)
+            next_state = torch.from_numpy(next_state).to(self.device)#np.flip(next_state,axis=0).copy()).to(self.device)
 
-                self.remember(state, action, reward, next_state, done)
+            self.remember(state, action, reward, next_state, done)
                 
-                state = next_state
+            state = next_state
                 
-                if done: break
-                
-                if iterations % self.caching_interval == 0:
-                    self.cached_qnet = deepcopy(self.qnet)
+            if done: break
 
-                if len(self.memory) > batch_size:
-                    self.replay(batch_size, eps_decay)
+            if self.total_iterations % self.caching_interval == 0:
+                self.cached_qnet = deepcopy(self.qnet)
 
-            self.history.append(score)
-            self.maxq_history.append(self.maxq_temp)
+            if len(self.memory) > batch_size:
+                self.replay(batch_size, eps_decay)
+
+        self.history.append(score)
+        self.maxq_history.append(self.maxq_temp)
             
-            if self.plotter is not None:
-                self.plotter(self.history)
+        if self.plotter is not None:
+            self.plotter(self.history)
             
-            if verbose:
-                print("episode: {}/{}, score: {:.2}, e: {:.2}, maxQ={:.2}, len(memory)={}".format(e, num_episodes, float(score), self.epsilon, self.maxq_temp, len(self.memory)))
-                if self.loss_count > 0:
-                    self.loss_history.append(self.loss_temp / self.loss_count)
-                    self.loss_temp = 0
-                    self.loss_count = 0
+        if verbose:
+            print("episode: {}/{}, score: {:.2}, e: {:.2}, maxQ={:.2}, len(memory)={}".format(e, num_episodes, float(score), self.epsilon, self.maxq_temp, len(self.memory)))
+            if self.loss_count > 0:
+                self.loss_history.append(self.loss_temp / self.loss_count)
+                self.loss_temp = 0
+                self.loss_count = 0
                 
+    def train(self, num_episodes, batch_size, training_iter=5000, completion_reward=None, verbose=False, plot=False, eps_decay=True):
+        for e in range(num_episodes):
+            self.train_episode(e, num_episodes, batch_size, training_iter, completion_reward, verbose, plot, eps_decay)
 
+            
     def replay(self, batch_size, eps_decay):
         minibatch = random.sample(self.memory, batch_size)
         

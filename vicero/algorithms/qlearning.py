@@ -35,6 +35,7 @@ class Qlearning:
         self.plotter = plotter
         self.table_type = table_type
 
+        self.state_visits = np.zeros(self.n_states)
         # Set up Q-table
         if table_type == "numpy":
             self.Q = np.zeros((self.n_states, self.n_actions))
@@ -43,6 +44,7 @@ class Qlearning:
 
     def update_q(self, state, action, reward, next_state):
         # Bellman update
+        self.state_visits[self.discretize(state)] += 1
         self.Q[self.discretize(state)][action] += self.learning_rate * (
                 reward + self.gamma * np.max(self.Q[self.discretize(next_state)])
                 - self.Q[self.discretize(state)][action]

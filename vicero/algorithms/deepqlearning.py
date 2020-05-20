@@ -20,8 +20,8 @@ from vicero.algorithms.common.neuralnetwork import NeuralNetwork, NetworkSpecifi
 # a more pure focus on the reinforcement learning.
 
 class DQN:
-    def __init__(self, env, spec=None, alpha=1e-3, gamma=.95, epsilon_start=0.9, epsilon_end=1e-3, memory_length=2000, state_to_reward=None, render=True, qnet_path=None, qnet=None, plotter=None, caching_interval=1000):
-
+    def __init__(self, env, spec=None, alpha=1e-3, gamma=.95, epsilon_start=0.9, epsilon_end=1e-3, memory_length=2000, state_to_reward=None, render=True, qnet_path=None, qnet=None, plotter=None, caching_interval=1000, plot_durations=False):
+        self.plot_durations = plot_durations
         # learning rate
         self.alpha = alpha
 
@@ -58,7 +58,8 @@ class DQN:
         self.optimizer = optimizer(self.qnet.parameters(), lr=self.alpha)
         self.criterion = loss_fct()
         self.render = render
-        
+
+        self.state_visits = {} 
         self.history = []
         self.maxq_history = []
         self.maxq_temp = float('-inf')
@@ -81,10 +82,17 @@ class DQN:
         progress = 0
 
         self.maxq_temp = float('-inf')
+
+        duration = 0
         for time in range(training_iter):
-                
+            duration = time
             if self.render: self.env.render()
-                        
+
+            if state in self.state_visits.keys():
+                self.state_visits[state] += 1
+            else:
+                self.state_visits[state] = 1
+
             action = self.exploratory_action(state, record_maxq=True)
             next_state, reward, done, _ = self.env.step(action)
             self.total_iterations += 1
@@ -111,7 +119,7 @@ class DQN:
             if len(self.memory) > batch_size:
                 self.replay(batch_size, eps_decay)
 
-        self.history.append(score)
+        self.history.append(duration if self.plot_durations else score)
         self.maxq_history.append(self.maxq_temp)
             
         if self.plotter is not None:

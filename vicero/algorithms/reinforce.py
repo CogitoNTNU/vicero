@@ -66,7 +66,7 @@ class Reinforce:
         for e in range(n_episodes):
             
             trajectory = []
-            state = torch.from_numpy(self.env.reset()).float()
+            state = torch.from_numpy(self.env.reset()).double()
             if render: self.env.render(mode='rgb_array')
 
             for t in count():
@@ -86,7 +86,7 @@ class Reinforce:
                 # TODO: add log prob to trajectory, optimization
 
                 trajectory.append((state, action, reward))            
-                state = torch.from_numpy(next_state).float()
+                state = torch.from_numpy(next_state).double()
             
                 if done:
                     trajectories.append(trajectory)
